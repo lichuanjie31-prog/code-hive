@@ -11,3 +11,12 @@
 - [x] 任务 1：脚手架完成（注：工作区非空时 create-vite 交互提示会取消，改用子目录 scaffold-tmp 脚手架后移动到根目录；npx.ps1 在沙箱里报 $LASTEXITCODE 错误，改用 npx.cmd），build 退出码 0，提交 scaffold
 - [x] 任务 2：resources.js 14 条资源、5 个分类，验收计数 14 ≥ 10，提交 data
 - [x] 任务 3：单页官网完成（导航/首屏/关于/资源分格/页脚，深色+霓虹渐变+六边形+悬停动效），build 0、oxlint 0 错误，提交 page
+- [x] 任务 4：反向验证通过（hive-check 先命中后消失），build 退出码 0，preview 返回 200 OK，提交 final
+
+## 验收结果
+- npm run build 退出码 0 ✓
+- preview http://localhost:4173 返回 200 OK ✓
+- 反向验证：改 url→build→命中 hive-check；还原→build→消失 ✓
+- resources.js 14 条资源（≥10）、5 分类（≥4）✓
+- git 提交 4 个：scaffold / data / page / final（≥3）✓
+- BLOCKED.md 已提交，内容：无 ✓
