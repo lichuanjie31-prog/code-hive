@@ -10,14 +10,23 @@ const MarkdownArticle = lazy(() => import('../articles/MarkdownArticle.jsx').the
 
 const h = React.createElement
 const defaultAuthor = 'code-hive 编辑部'
+const starterParagraph = '请围绕一个明确问题展开正文，交代背景和目标，记录实际过程、关键选择、验证证据与复盘结论，让读者能够理解思路并照着完成一次实践。'
 const starterBody = `## 文章标题
 
-在这里写下文章正文。
+${Array.from({ length: 12 }, () => starterParagraph).join('\n\n')}
 
 ## 要点
 
 - 第一个要点
 - 第二个要点
+
+## 示例代码
+
+\`\`\`js
+console.log('请替换为真实示例')
+\`\`\`
+
+[补充参考链接](https://example.com)
 `
 
 function pad(value) {
@@ -65,12 +74,20 @@ export function hasUnsavedChanges(saved, draft) {
   return JSON.stringify(comparable(saved)) !== JSON.stringify(comparable(draft))
 }
 
+export function createAsyncRequestSnapshot(originalSlug, draft) {
+  return { originalSlug, draft: JSON.stringify(comparable(draft)) }
+}
+
+export function canApplyAsyncResult(request, originalSlug, draft) {
+  return request.originalSlug === originalSlug && request.draft === JSON.stringify(comparable(draft))
+}
+
 function localDate() {
   const date = new Date()
   return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}`
 }
 
-function newDraft() {
+export function createNewArticleDraft() {
   return {
     slug: '',
     title: '',
@@ -111,6 +128,7 @@ function Status({ message, error = false }) {
 export function ArticleAdmin() {
   const api = useMemo(() => createAdminApi(), [])
   const textareaRef = useRef(null)
+  const deleteCancelRef = useRef(null)
   const [articles, setArticles] = useState([])
   const [search, setSearch] = useState('')
   const [originalSlug, setOriginalSlug] = useState(null)
@@ -126,6 +144,10 @@ export function ArticleAdmin() {
   const [slugEdited, setSlugEdited] = useState(false)
   const [renamePending, setRenamePending] = useState(false)
   const [deletePending, setDeletePending] = useState(false)
+  const originalSlugRef = useRef(originalSlug)
+  const draftRef = useRef(draft)
+  originalSlugRef.current = originalSlug
+  draftRef.current = draft
 
   const dirty = Boolean(draft && hasUnsavedChanges(saved, draft))
   const validSlug = /^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(draft?.slug ?? '')
@@ -213,8 +235,18 @@ export function ArticleAdmin() {
     return () => window.removeEventListener('beforeunload', protectDraft)
   }, [dirty])
 
+  useEffect(() => {
+    if (!deletePending) return undefined
+    deleteCancelRef.current?.focus()
+    const closeOnEscape = (event) => {
+      if (event.key === 'Escape') setDeletePending(false)
+    }
+    window.addEventListener('keydown', closeOnEscape)
+    return () => window.removeEventListener('keydown', closeOnEscape)
+  }, [deletePending])
+
   function startNewArticle() {
-    const next = newDraft()
+    const next = createNewArticleDraft()
     setOriginalSlug(null)
     setSlugEdited(false)
     setSaved(null)
@@ -232,6 +264,7 @@ export function ArticleAdmin() {
       if (field === 'title' && !originalSlug && !slugEdited) {
         next.slug = slugifyTitle(value)
       }
+      draftRef.current = next
       return next
     })
     setStatus('')
@@ -264,13 +297,22 @@ export function ArticleAdmin() {
     setPageError('')
     setStatus('')
     try {
+      const request = createAsyncRequestSnapshot(originalSlug, draft)
       const article = { ...draft }
       delete article.body
       article.markdownPath = `src/content/articles/${draft.slug}.md`
       const savedArticle = await api.saveArticle(originalSlug, { article, body: draft.body })
-      setRenamePending(false)
-      await loadArticles(savedArticle.slug ?? draft.slug)
-      setStatus('文章已保存')
+      const list = await api.listArticles()
+      setArticles(list)
+      if (canApplyAsyncResult(request, originalSlugRef.current, draftRef.current)) {
+        const next = draftFromArticle(savedArticle)
+        setOriginalSlug(savedArticle.slug ?? draft.slug)
+        setSaved(next)
+        setDraft(next)
+        setRenamePending(false)
+        setSlugEdited(false)
+        setStatus('文章已保存')
+      }
     } catch (error) {
       setPageError(error.message)
     } finally {
@@ -284,9 +326,16 @@ export function ArticleAdmin() {
     if (!file || !validSlug) return
     setBusy('cover')
     setCoverError('')
+    const request = createAsyncRequestSnapshot(originalSlug, draft)
     try {
       const result = await api.uploadImage(draft.slug, file, 'cover')
-      updateField('cover', result.url)
+      if (canApplyAsyncResult(request, originalSlugRef.current, draftRef.current)) {
+        setDraft((current) => {
+          const next = { ...current, cover: result.url }
+          draftRef.current = next
+          return next
+        })
+      }
     } catch (error) {
       setCoverError(error.message)
     } finally {
@@ -304,10 +353,25 @@ export function ArticleAdmin() {
     }
     setBusy('image')
     setImageError('')
+    const request = createAsyncRequestSnapshot(originalSlug, draft)
+    const selectionStart = textareaRef.current?.selectionStart ?? draft.body.length
+    const selectionEnd = textareaRef.current?.selectionEnd ?? draft.body.length
+    const alt = inlineAlt.trim()
     try {
       const result = await api.uploadImage(draft.slug, file, 'image')
-      insertMarkdown(`![${inlineAlt.trim()}](${result.url})`)
-      setInlineAlt('')
+      if (canApplyAsyncResult(request, originalSlugRef.current, draftRef.current)) {
+        const insertion = insertMarkdownAtSelection(draft.body, selectionStart, selectionEnd, `![${alt}](${result.url})`)
+        setDraft((current) => {
+          const next = { ...current, body: insertion.source }
+          draftRef.current = next
+          return next
+        })
+        setInlineAlt('')
+        requestAnimationFrame(() => {
+          textareaRef.current?.focus()
+          textareaRef.current?.setSelectionRange(insertion.selectionStart, insertion.selectionEnd)
+        })
+      }
     } catch (error) {
       setImageError(error.message)
     } finally {
@@ -428,7 +492,7 @@ export function ArticleAdmin() {
       deletePending ? h('div', { className: 'admin-confirmation admin-delete-confirmation', role: 'dialog', 'aria-modal': 'true', 'aria-labelledby': 'delete-title' },
         h('h2', { id: 'delete-title' }, `删除《${draft.title}》`),
         h('p', null, `将永久删除文章 “${draft.title}” 及其正文文件。`),
-        h('button', { type: 'button', onClick: () => setDeletePending(false) }, '取消'),
+        h('button', { type: 'button', ref: deleteCancelRef, onClick: () => setDeletePending(false) }, '取消'),
         h('button', { type: 'button', className: 'admin-danger-button', onClick: deleteArticle }, busy === 'delete' ? '删除中…' : '确认删除'),
       ) : null,
       metadata,

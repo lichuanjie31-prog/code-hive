@@ -18,7 +18,14 @@ registerHooks({
   },
 })
 
-const { hasUnsavedChanges, insertMarkdownAtSelection, slugifyTitle } = await import('../src/admin/ArticleAdmin.jsx')
+const {
+  canApplyAsyncResult,
+  createAsyncRequestSnapshot,
+  createNewArticleDraft,
+  hasUnsavedChanges,
+  insertMarkdownAtSelection,
+  slugifyTitle,
+} = await import('../src/admin/ArticleAdmin.jsx')
 
 function installFileReader() {
   const original = globalThis.FileReader
@@ -162,4 +169,22 @@ test('dirty comparison follows draft values instead of object identity', () => {
   const saved = { slug: 'same', title: '同一篇', body: '正文', nested: { cover: '/cover.png' } }
   assert.equal(hasUnsavedChanges(saved, { ...saved, nested: { cover: '/cover.png' } }), false)
   assert.equal(hasUnsavedChanges(saved, { ...saved, body: '已修改' }), true)
+})
+
+test('new article starter body passes the publishing content floor and includes required Markdown', () => {
+  const draft = createNewArticleDraft()
+  assert.ok((draft.body.match(/[\u3400-\u9fff]/g) ?? []).length >= 500)
+  assert.match(draft.body, /^## /m)
+  assert.match(draft.body, /^- /m)
+  assert.match(draft.body, /```js[\s\S]+```/)
+  assert.match(draft.body, /\[[^\]]+\]\(https?:\/\/[^)]+\)/)
+})
+
+test('late async results cannot apply after switching articles or editing the request draft', () => {
+  const draft = { slug: 'first-post', title: '第一篇', cover: '/cover.png', body: '原正文' }
+  const request = createAsyncRequestSnapshot('first-post', draft)
+
+  assert.equal(canApplyAsyncResult(request, 'second-post', { ...draft, slug: 'second-post' }), false)
+  assert.equal(canApplyAsyncResult(request, 'first-post', { ...draft, body: '等待期间的新输入' }), false)
+  assert.equal(canApplyAsyncResult(request, 'first-post', { ...draft }), true)
 })
