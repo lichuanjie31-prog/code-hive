@@ -1,8 +1,24 @@
 import assert from 'node:assert/strict'
 import { File } from 'node:buffer'
+import { readFileSync } from 'node:fs'
+import { registerHooks } from 'node:module'
 import test from 'node:test'
 
 import { AdminApiError, createAdminApi, fileToUploadPayload } from '../src/admin/article-admin-api.js'
+
+registerHooks({
+  load(url, context, nextLoad) {
+    if (url.endsWith('.css')) {
+      return { format: 'module', source: '', shortCircuit: true }
+    }
+    if (url.endsWith('.jsx')) {
+      return { format: 'module', source: readFileSync(new URL(url), 'utf8'), shortCircuit: true }
+    }
+    return nextLoad(url, context)
+  },
+})
+
+const { hasUnsavedChanges, insertMarkdownAtSelection, slugifyTitle } = await import('../src/admin/ArticleAdmin.jsx')
 
 function installFileReader() {
   const original = globalThis.FileReader
@@ -114,4 +130,36 @@ test('image picker blocks unsupported and oversized files before upload', async 
 
   await assert.rejects(fileToUploadPayload(unsupported, 'image'), /PNG, JPEG, WebP, and SVG/)
   await assert.rejects(fileToUploadPayload(tooLarge, 'cover'), /5 MiB/)
+})
+
+test('article titles produce stable URL-safe slugs with a timestamp fallback for Chinese-only text', () => {
+  const NativeDate = globalThis.Date
+  globalThis.Date = class FixedDate extends NativeDate {
+    constructor(...args) {
+      super(...(args.length ? args : ['2026-08-13T09:07:05']))
+    }
+  }
+  try {
+    assert.equal(slugifyTitle('  Hello, React World!  '), 'hello-react-world')
+    assert.equal(slugifyTitle('本地文章管理'), 'article-20260813-090705')
+  } finally {
+    globalThis.Date = NativeDate
+  }
+})
+
+test('Markdown insertion replaces selected text as link copy and inserts image syntax at the caret', () => {
+  assert.deepEqual(
+    insertMarkdownAtSelection('访问文档', 2, 4, '[链接文字](https://example.com)'),
+    { source: '访问[文档](https://example.com)', selectionStart: 2, selectionEnd: 27 },
+  )
+  assert.deepEqual(
+    insertMarkdownAtSelection('封面之后', 2, 2, '![架构图](/articles/demo/diagram.png)'),
+    { source: '封面![架构图](/articles/demo/diagram.png)之后', selectionStart: 36, selectionEnd: 36 },
+  )
+})
+
+test('dirty comparison follows draft values instead of object identity', () => {
+  const saved = { slug: 'same', title: '同一篇', body: '正文', nested: { cover: '/cover.png' } }
+  assert.equal(hasUnsavedChanges(saved, { ...saved, nested: { cover: '/cover.png' } }), false)
+  assert.equal(hasUnsavedChanges(saved, { ...saved, body: '已修改' }), true)
 })
