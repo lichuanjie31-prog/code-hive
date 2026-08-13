@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict'
-import { access, readFile } from 'node:fs/promises'
+import { access, readFile, readdir } from 'node:fs/promises'
 import path from 'node:path'
 import test from 'node:test'
 
@@ -104,4 +104,33 @@ test('文章查找对有效 slug 返回文章，对无效 slug 返回空值', as
   const { findArticleBySlug } = await import('../src/data/articles.js')
   assert.equal(findArticleBySlug('read-open-source-projects')?.title, '第一次读开源项目，从一条真实路径开始')
   assert.equal(findArticleBySlug('missing-article'), null)
+})
+
+const distDir = path.join(root, 'dist')
+
+test('生产构建输出入口页面', async () => {
+  try {
+    await access(path.join(distDir, 'index.html'))
+  } catch {
+    assert.fail('dist/index.html 不存在，请先运行 npm run build 生成生产制品')
+  }
+})
+
+test('生产制品不含文章管理端点与可写 API', async () => {
+  let entries
+  try {
+    entries = await readdir(path.join(distDir, 'assets'))
+  } catch {
+    assert.fail('dist/assets 目录不存在，请先运行 npm run build 生成生产制品')
+    return
+  }
+  const scripts = entries.filter((name) => name.endsWith('.js'))
+  assert.ok(scripts.length >= 1, 'dist/assets 下没有任何 .js 制品')
+  const forbiddenStrings = ['/api/admin/articles', 'saveArticle', 'uploadImage']
+  for (const script of scripts) {
+    const content = await readFile(path.join(distDir, 'assets', script), 'utf8')
+    for (const forbidden of forbiddenStrings) {
+      assert.ok(!content.includes(forbidden), `生产制品 assets/${script} 包含 "${forbidden}"，文章管理功能泄漏到了生产构建`)
+    }
+  }
 })
