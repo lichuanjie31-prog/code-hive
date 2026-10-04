@@ -174,3 +174,7 @@ npm run build
 
 - Gitee：<https://gitee.com/lichuanjie31/codehive-community-website>
 - GitHub：<https://github.com/lichuanjie31-prog/code-hive>
+
+## 校园竞赛资讯专区
+
+新增公开页面 `#/competitions`，首批整理软件杯、服创赛及中国大学生计算机设计大赛。资料适用年份、官方来源、赛道时间与待确认事项均在详情页标注。维护结构和可选反馈邮箱配置见 [竞赛专区说明](docs/competitions.md)。

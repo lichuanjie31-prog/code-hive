@@ -2,6 +2,8 @@ import { lazy, Suspense, useEffect, useState } from 'react'
 import { MarkdownArticle } from './articles/MarkdownArticle'
 import { articleSlugFromHash, articles, findArticleBySlug } from './data/articles'
 import { site, categories, resources } from './data/resources'
+import { CompetitionList, CompetitionDetail } from './competitions/CompetitionsPage'
+import { competitionRouteFromHash } from './competitions/competition-repository'
 import './App.css'
 
 const ArticleAdmin = import.meta.env.DEV
@@ -47,6 +49,7 @@ function Navbar() {
         <a href="#about">关于社区</a>
         <a href="#articles">精选文章</a>
         <a href="#resources">资源蜂巢</a>
+        <a href="#/competitions">竞赛专区</a>
         {import.meta.env.DEV ? <a href="#/admin/articles">文章管理</a> : null}
         <a className="nav-domain" href="#top">
           {site.domain}
@@ -259,7 +262,18 @@ function App() {
     return () => window.removeEventListener('hashchange', updateHash)
   }, [])
 
+  useEffect(() => {
+    // 页面重新挂载后再处理首页锚点；详情路由从页首开始阅读。
+    const frame = window.requestAnimationFrame(() => {
+      if (hash.startsWith('#/')) window.scrollTo({ top: 0, behavior: 'instant' })
+      else document.getElementById(hash.slice(1) || 'top')?.scrollIntoView()
+    })
+    return () => window.cancelAnimationFrame(frame)
+  }, [hash])
+
   const articleRoute = hash.startsWith('#/articles/')
+  const competitionRoute = competitionRouteFromHash(hash)
+  if (competitionRoute) return <div className="page"><Navbar />{competitionRoute.type === 'list' ? <CompetitionList /> : <CompetitionDetail key={competitionRoute.slug} slug={competitionRoute.slug} />}<Footer /></div>
   if (articleRoute) return <div className="page"><ArticlePage slug={articleSlugFromHash(hash)} /></div>
 
   if (hash === '#/admin/articles') {

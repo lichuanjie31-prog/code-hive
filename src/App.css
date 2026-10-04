@@ -9,6 +9,8 @@
     var(--bg);
 }
 
+main section[id] { scroll-margin-top: 115px; }
+
 .gradient-text {
   background: linear-gradient(92deg, var(--cyan), var(--violet));
   -webkit-background-clip: text;
