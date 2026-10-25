@@ -26,3 +26,13 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# Backend local environments and private data
+.venv/
+__pycache__/
+.pytest_cache/
+*.pyc
+*.db
+*.db-wal
+*.db-shm
+backend/.env

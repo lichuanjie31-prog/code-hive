@@ -155,7 +155,7 @@ test('unknown articles and routes return JSON 404 errors', async () => {
     const missing = await api.request('/api/admin/articles/missing')
     assert.equal(missing.status, 404)
     assert.equal(missing.body.error.code, 'ARTICLE_NOT_FOUND')
-    const route = await api.request('/api/admin/unknown')
+    const route = await api.request('/api/admin/articles/unknown/route')
     assert.equal(route.status, 404)
     assert.equal(route.body.error.code, 'NOT_FOUND')
   })

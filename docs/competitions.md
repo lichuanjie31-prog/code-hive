@@ -1,13 +1,14 @@
-# 校园竞赛资讯专区（第一版）
+# 校园竞赛资讯专区（第一版资料，第二版 API 接入）
 
 访问 `#/competitions`；详情地址用 slug，数据库或互动关联应使用稳定的 `competition.id`。比赛、赛道和节点 ID 不随显示名称改变。
 
 ## 维护边界
 
-- `src/data/competitions.js`：手工维护的事实快照、适用年份、来源与独立的本站分析。
-- `src/competitions/competition-repository.js`：查询、筛选、详情、来源与时间轴访问接口。后续 API 替换从这里开始，页面不直接导入数据。
+- `backend/seed/competitions-v1.json`：不可变的首版迁移快照，保留当时的事实、年份、来源与分析；不作为前端运行时数据源。
+- 后端数据库的 `competitions`、`tracks`、`sources`、`milestones`：第二版唯一运行时比赛数据源。资料更新由后端维护，并用新迁移或受控后台数据流程执行；不要修改已执行的快照迁移。
+- `src/competitions/competition-repository.js`：通过 API 加载数据，保留纯筛选、路由与时间轴工具，页面不导入事实快照。
 - `src/competitions/CompetitionsPage.jsx`：列表与详情；独立反馈组件和样式。
-- 收藏、点赞和推荐将以稳定比赛 ID 关联，第一版不存用户数据、不提供写入接口。
+- 第二版收藏与订阅以稳定比赛 ID 关联；点赞、推荐和自动通知不在本版范围。
 
 ## 资料核验（2026-10-04）
 
@@ -32,6 +33,8 @@ npm run build
 npm run lint
 npm test
 ```
+
+第二版浏览比赛需同时启动后端，步骤见 [第二版开发与接口约定](member-access-v2.md)。
 
 构建需先于测试（现有文章测试会检查生产制品）。本地管理员功能仍只在开发环境开放。没有推送或部署步骤。
 

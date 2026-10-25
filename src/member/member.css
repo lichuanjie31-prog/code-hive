@@ -1,0 +1,19 @@
+.member-page { max-width: 1100px; margin: 0 auto; padding: 120px 24px 60px; min-height: 70vh; }
+.member-page h1 { margin-bottom: 24px; font-size: clamp(28px, 5vw, 44px); }
+.member-page > p { margin: 20px 0; }
+.member-page .competition-panel { margin: 24px 0; overflow-wrap: anywhere; }
+.member-form { display: grid; gap: 18px; max-width: 650px; }
+.member-form label { display: grid; gap: 8px; }
+.member-form input, .member-form textarea { width: 100%; padding: 12px; border: 1px solid var(--border, #343443); border-radius: 8px; background: var(--bg, #101016); color: inherit; font: inherit; }
+.member-form textarea { min-height: 110px; resize: vertical; }
+.member-actions, .member-tabs { display: flex; gap: 12px; flex-wrap: wrap; align-items: center; margin: 18px 0; }
+.member-tabs [aria-pressed="true"], .member-actions [aria-pressed="true"] { border-color: #a78bfa; color: #c4b5fd; }
+.member-error { color: #fda4af; overflow-wrap: anywhere; }
+.member-reminder { display: inline-block; font-size: 13px; color: #aaa; margin: 8px 12px; }
+.member-page button.btn, .member-competition-actions button.btn { font-family: inherit; cursor: pointer; }
+.member-page button.btn-ghost, .member-competition-actions button.btn-ghost { background: transparent; }
+.member-page button.btn-primary { border: 1px solid transparent; }
+.member-page button:focus-visible, .member-competition-actions button:focus-visible { outline: 2px solid var(--cyan); outline-offset: 3px; }
+.member-competition-actions { margin: 20px 0; }
+button:disabled { opacity: .55; cursor: not-allowed; }
+@media (max-width: 600px) { .member-page { padding: 100px 16px 40px; } .member-actions .btn { padding: 10px 14px; } }
