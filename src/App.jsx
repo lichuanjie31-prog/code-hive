@@ -5,6 +5,10 @@ import { site, categories, resources } from './data/resources'
 import { CompetitionList, CompetitionDetail } from './competitions/CompetitionsPage'
 import { competitionRouteFromHash } from './competitions/competition-repository'
 import './App.css'
+import { MemberNav, MemberProvider } from './member/MemberContext'
+import { AccountPage } from './member/AccountPage'
+import { MyCompetitions } from './member/MyCompetitions'
+import { AdminMembership } from './member/AdminMembership'
 
 const ArticleAdmin = import.meta.env.DEV
   ? lazy(() => import('./admin/ArticleAdmin.jsx').then((module) => ({ default: module.ArticleAdmin })))
@@ -50,6 +54,7 @@ function Navbar() {
         <a href="#articles">精选文章</a>
         <a href="#resources">资源蜂巢</a>
         <a href="#/competitions">竞赛专区</a>
+        <MemberNav />
         {import.meta.env.DEV ? <a href="#/admin/articles">文章管理</a> : null}
         <a className="nav-domain" href="#top">
           {site.domain}
@@ -273,6 +278,8 @@ function App() {
 
   const articleRoute = hash.startsWith('#/articles/')
   const competitionRoute = competitionRouteFromHash(hash)
+  const memberPage = hash === '#/account' ? <AccountPage /> : hash === '#/me/competitions' ? <MyCompetitions /> : hash === '#/admin/membership' ? <AdminMembership /> : null
+  if (memberPage) return <div className="page"><Navbar />{memberPage}<Footer /></div>
   if (competitionRoute) return <div className="page"><Navbar />{competitionRoute.type === 'list' ? <CompetitionList /> : <CompetitionDetail key={competitionRoute.slug} slug={competitionRoute.slug} />}<Footer /></div>
   if (articleRoute) return <div className="page"><ArticlePage slug={articleSlugFromHash(hash)} /></div>
 
@@ -302,4 +309,4 @@ function App() {
   )
 }
 
-export default App
+export default function MemberApp() { return <MemberProvider><App /></MemberProvider> }

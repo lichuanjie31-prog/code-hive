@@ -58,7 +58,7 @@ function route(pathname) {
 
 async function handle(request, response, store) {
   const { pathname } = new URL(request.url, 'http://localhost')
-  if (!pathname.startsWith('/api/admin/')) return false
+  if (pathname !== apiPrefix && !pathname.startsWith(`${apiPrefix}/`)) return false
   if (!isLoopback(request.socket?.remoteAddress)) {
     sendError(response, 403, 'REMOTE_FORBIDDEN', 'The article admin API only accepts loopback requests.')
     return true
