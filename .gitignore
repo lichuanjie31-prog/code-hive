@@ -36,3 +36,4 @@ __pycache__/
 *.db-wal
 *.db-shm
 backend/.env
+宝塔.txt

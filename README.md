@@ -174,6 +174,8 @@ npm run build
 
 产物是纯静态文件，输出到 `dist/`，可直接部署到任意静态托管（对象存储 + CDN、Nginx、Vercel、Netlify 等）。站点使用 Hash 路由，不需要配置服务端重写规则。
 
+宝塔站点从 Gitee 拉取并自动发布前端的步骤见 [宝塔部署说明](docs/baota-deploy.md)。比赛、账号等 `/api` 功能还需要单独部署 FastAPI 后端。
+
 ## 仓库
 
 - Gitee：<https://gitee.com/lichuanjie31/codehive-community-website>
