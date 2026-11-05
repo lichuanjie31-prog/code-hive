@@ -25,6 +25,8 @@ release="$base/releases/$id"
 mkdir "$release"
 tar -xzf "$archive" -C "$release"
 rm -f "$archive"
+tar -xf "$release/source.tar" -C "$release"
+rm -f "$release/source.tar"
 [[ -f "$release/dist/index.html" && -d "$release/dist/assets" ]] || exit 2
 export RELEASE_ID="$id"
 compose() { docker compose --env-file "$config" -f "$release/deploy/compose.yml" "$@"; }

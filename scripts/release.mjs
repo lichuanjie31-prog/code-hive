@@ -67,8 +67,9 @@ try {
   mkdirSync('.deploy-work', { recursive: true });
   work = mkdtempSync(resolve('.deploy-work/release-'));
   const source = join(work, 'source'); mkdirSync(source);
-  run('git', ['archive', '--format=tar', `--output=${join(work, 'source.tar')}`, revision]);
-  run('tar', ['-xf', join(work, 'source.tar'), '-C', source]);
+  // Keep Git's UTF-8 archive intact: Windows tar cannot reliably extract Chinese paths.
+  // The Linux server extracts it after receiving the ASCII-named outer bundle.
+  run('git', ['archive', '--format=tar', `--output=${join(source, 'source.tar')}`, revision]);
   cpSync('dist', join(source, 'dist'), { recursive: true });
   const archive = join(work, 'release.tgz');
   run('tar', ['-czf', archive, '-C', source, '.']);
