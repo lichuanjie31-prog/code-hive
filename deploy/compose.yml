@@ -24,7 +24,7 @@ services:
       CODEHIVE_DATABASE_URL: postgresql+psycopg://codehive:${POSTGRES_PASSWORD}@db:5432/codehive
       CODEHIVE_ENVIRONMENT: production
       CODEHIVE_COOKIE_SECURE: "true"
-      CODEHIVE_ALLOWED_ORIGINS: '["${SITE_ORIGIN:?Set SITE_ORIGIN}"]'
+      CODEHIVE_ALLOWED_ORIGINS: '["${SITE_ORIGIN:?Set SITE_ORIGIN}","${SITE_ALIAS_ORIGIN:-https://www.codehive.asia}"]'
     ports:
       - "127.0.0.1:8100:8000"
     depends_on:

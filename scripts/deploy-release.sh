@@ -41,7 +41,26 @@ fi
 api_changed=false
 index_changed=false
 nginx_changed=false
-nginx_config=/www/server/panel/vhost/nginx/extension/codehive.asia/codehive-api.conf
+nginx_mode=${NGINX_MODE:-auto}
+if [[ "$nginx_mode" == auto ]]; then
+  if systemctl is-active --quiet nginx && [[ -d /etc/nginx/bt-vhosts/extension/codehive.asia ]]; then
+    nginx_mode=system
+  else
+    nginx_mode=baota
+  fi
+fi
+case "$nginx_mode" in
+  system) nginx_config=/etc/nginx/bt-vhosts/extension/codehive.asia/codehive-api.conf ;;
+  baota) nginx_config=/www/server/panel/vhost/nginx/extension/codehive.asia/codehive-api.conf ;;
+  *) echo 'NGINX_MODE must be auto, system or baota' >&2; exit 2 ;;
+esac
+nginx_reload() {
+  if [[ "$nginx_mode" == system ]]; then
+    /usr/sbin/nginx -t -c /etc/nginx/nginx.conf && systemctl reload nginx
+  else
+    /www/server/nginx/sbin/nginx -t && /www/server/nginx/sbin/nginx -s reload
+  fi
+}
 rollback() {
   status=$?
   trap - ERR
@@ -52,7 +71,7 @@ rollback() {
     else
       rm -f "$nginx_config"
     fi
-    /www/server/nginx/sbin/nginx -t && /www/server/nginx/sbin/nginx -s reload
+    nginx_reload
   fi
   if $index_changed; then
     if $had_index; then
@@ -89,8 +108,7 @@ if [[ "$mode" == fullstack ]]; then
   if [[ -f "$nginx_config" ]]; then cp -p "$nginx_config" "$base/backups/nginx-$id.conf"; fi
   nginx_changed=true
   install -m 644 "$release/deploy/nginx-api.conf.example" "$nginx_config"
-  /www/server/nginx/sbin/nginx -t
-  /www/server/nginx/sbin/nginx -s reload
+  nginx_reload
 fi
 # Existing hashed assets remain available to clients holding the previous page.
 rsync -rlt --chmod=D755,F644 --exclude='/index.html' "$release/dist/" "$SITE_ROOT/"

@@ -53,7 +53,7 @@ bash scripts/bootstrap-server.sh
 
 初始化脚本会生成随机数据库密码，保存到权限为 600 的 `/etc/codehive/deploy.env`，并备份现有网站。配置已存在时不会覆盖。检查 SITE_ROOT 和 SITE_ORIGIN。配置文件同时供 Bash 与 Compose 读取，只放可信的简单字面值。数据库初始化后修改该值不会修改数据库中的密码，轮换需单独操作。
 
-首次发布会在新 API 健康后自动安装宝塔扩展配置 `extension/codehive.asia/codehive-api.conf`，检查 Nginx 配置并重载。API 保留 `/api/` 前缀，数据库只在 Docker 内网可访问，API 仅绑定服务器 `127.0.0.1:8100`。若已手动配置相同 location，先整合配置以避免重复。
+首次发布会在新 API 健康后自动安装站点扩展配置 `extension/codehive.asia/codehive-api.conf`，检查 Nginx 配置并重载。当前服务器实际使用 systemd 管理的系统 Nginx，配置位于 `/etc/nginx/bt-vhosts`；脚本会识别这个布局，通过 `systemctl reload nginx` 重载。普通宝塔安装则使用 `/www/server/panel/vhost/nginx`。可用 `NGINX_MODE=system` 或 `baota` 明确指定。API 保留 `/api/` 前缀，数据库只在 Docker 内网可访问，API 仅绑定服务器 `127.0.0.1:8100`。若已手动配置相同 location，先整合配置以避免重复。生产允许来源覆盖主域名与 `SITE_ALIAS_ORIGIN`，后者默认为 `https://www.codehive.asia`。
 
 Python 与 PostgreSQL 使用 Docker 在 Amazon ECR Public 发布的官方镜像，避免服务器访问 Docker Hub 超时。来源说明见 [Docker 官方公告](https://www.docker.com/press-release/docker-official-images-available-amazon-elastic-container-registry/)。
 
