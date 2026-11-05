@@ -168,6 +168,8 @@ npm test
 
 ## 部署
 
+前后端一键检查、推送仓库与部署云服务器，请使用 [CI/CD 使用说明](docs/cicd.md)。本地入口为 `npm run release`，GitHub 工作流为 `.github/workflows/cicd.yml`。首次使用需要配置 SSH 与服务器环境。
+
 ```bash
 npm run build
 ```

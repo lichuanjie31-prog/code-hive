@@ -1,5 +1,7 @@
 # 宝塔站点更新与部署
 
+完整前后端发布现已提供 `npm run release`，配置步骤见 [CI/CD 使用说明](cicd.md)。本文以下保留旧版前端发布方式；启用完整发布后，停用运行 `deploy-bt.sh` 的宝塔计划任务，避免旧流程覆盖完整版本。
+
 本仓库的前端由 Vite 构建，宝塔站点 `codehive.asia` 的网站根目录是 `/www/wwwroot/codehive.asia`。发布时应把 `dist/` 中的静态文件放进网站根目录。`scripts/deploy-bt.sh` 会在服务器上拉取 Gitee 的 `master`、安装依赖、构建、运行前端测试与代码检查，然后发布静态文件。
 
 ## 第一次在服务器上准备
@@ -13,6 +15,23 @@ npm --version
 rsync --version
 command -v flock
 ```
+
+如果终端出现单独的 `>` 提示符，先按 `Ctrl+C`，再逐行输入命令。不要把 Markdown 的代码围栏复制到终端。
+
+截图中的服务器已安装 Git 和 flock，缺少 Node.js、npm 与 rsync。若 `cat /etc/os-release` 确认系统使用 RPM 和 dnf，可用 root 账号安装：
+
+```bash
+cat /etc/os-release
+dnf install -y curl rsync
+curl -fsSL https://rpm.nodesource.com/setup_22.x -o /root/nodesource_setup.sh
+bash /root/nodesource_setup.sh
+dnf install -y nodejs
+node --version
+npm --version
+rsync --version
+```
+
+Node.js 22 的 RPM 安装步骤参考 [NodeSource 官方仓库](https://github.com/nodesource/distributions)。安装完毕后再继续克隆仓库。宝塔计划任务也需要能在 PATH 中找到 `node`、`npm` 和 `rsync`。
 
 确保宝塔中 `codehive.asia` 的网站根目录确实是 `/www/wwwroot/codehive.asia`。把仓库克隆到网站根目录之外，然后首次运行：
 

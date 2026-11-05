@@ -1,0 +1,8 @@
+{
+  "sshHost": "root@47.102.85.207",
+  "sshPort": 22,
+  "remotes": ["origin", "gitee"],
+  "branch": "master",
+  "mode": "fullstack",
+  "python": "python"
+}

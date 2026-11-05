@@ -1,0 +1,8 @@
+在本机仓库目录提交本次修改后运行：
+
+npm run release
+
+自动检查、推送 GitHub/Gitee、部署前后端并验证公网访问。
+只检查、不推送和部署：npm run release -- --check
+首次配置与故障处理：docs/cicd.md
+私钥路径放在 deploy/config.local.json 的 identityFile 中，该文件不会提交到仓库。

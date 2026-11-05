@@ -37,3 +37,10 @@ __pycache__/
 *.db-shm
 backend/.env
 宝塔.txt
+
+# Deployment credentials and generated bundles
+deploy/config.local.json
+.deploy-work/
+.env
+*.pem
+*.key

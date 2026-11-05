@@ -1,0 +1,10 @@
+*
+!backend
+backend/*
+!backend/app
+!backend/migrations
+!backend/seed
+!backend/alembic.ini
+!backend/requirements.lock.txt
+**/__pycache__
+**/*.pyc
