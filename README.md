@@ -1,10 +1,12 @@
 # code-hive 技术社区网站
 
-> 酿一份少走弯路的成长路线图 —— codehive.asia
+**简体中文** | [English](./README.en.md)
+
+> 酿一份少走弯路的成长路线图 · [codehive.asia](https://codehive.asia)
 
 code-hive 是一个面向大学生的技术社区站点。我们把亲测好用的学习网站、资料和工具按学习方向整理成"蜂巢"，一格一格摆好，让访问者开箱即取，少走弯路。
 
-站点提供公开资源、精选文章与竞赛浏览，第二版加入账号申请审核、收藏、订阅和“我的比赛”，并保留只在本机开发环境开放的文章管理。第二版前后端启动及接口约定见 [第二版开发手册](docs/member-access-v2.md)，实施与验证状态见 [开发进度](PROGRESS.md)。当前改动仅在本地功能分支，未发布。
+站点提供公开资源、精选文章与竞赛浏览，第二版加入账号申请审核、收藏、订阅和“我的比赛”，并保留只在本机开发环境开放的文章管理。第二版前后端启动及接口约定见 [第二版开发手册](docs/member-access-v2.md)，实施与验证记录见 [开发进度](PROGRESS.md)。
 
 ## 功能
 
@@ -34,7 +36,7 @@ code-hive 是一个面向大学生的技术社区站点。我们把亲测好用�
 | --- | --- |
 | 框架 | React 19 |
 | 后端 | FastAPI、Pydantic、SQLAlchemy 2、Alembic |
-| 数据库 | 本地 SQLite；正式环境准备采用 PostgreSQL |
+| 数据库 | 本地 SQLite，生产环境 PostgreSQL |
 | 构建 | Vite 8 |
 | 代码检查 | oxlint |
 | 测试 | Node.js 内置 `node:test` |
@@ -151,7 +153,7 @@ code-hive/
 - 生产构建不包含后台代码：`ArticleAdmin` 仅在 `import.meta.env.DEV` 下动态导入，构建插件的 `apply: 'serve'` 也保证它不会进入 `dist/`
 - 测试套件会扫描 `dist/assets/*.js`，一旦出现 `/api/admin/articles`、`saveArticle`、`uploadImage` 等字样即判定失败
 
-因此线上站点是**纯静态只读页面**，发布新文章的流程是：本地用后台写完 → 提交 Markdown 与图片 → 重新构建部署。
+线上文章随前端构建发布。发布新文章时，先用本地编辑器保存，再提交 Markdown 与图片并重新构建部署。
 
 ## 测试
 
