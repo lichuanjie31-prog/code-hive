@@ -111,13 +111,16 @@ if [[ "$mode" == fullstack ]]; then
   nginx_reload
 fi
 # Existing hashed assets remain available to clients holding the previous page.
-rsync -rlt --chmod=D755,F644 --exclude='/index.html' "$release/dist/" "$SITE_ROOT/"
+rsync -rltp --chmod=D755,F644 --exclude='/index.html' "$release/dist/" "$SITE_ROOT/"
 cp "$release/dist/index.html" "$SITE_ROOT/.index-$id"
 chmod 644 "$SITE_ROOT/.index-$id"
 index_changed=true
 mv -f "$SITE_ROOT/.index-$id" "$SITE_ROOT/index.html"
 curl --fail --silent --show-error --max-time 30 "$SITE_ORIGIN/?release=$id" -o "$release/served-index.html"
 cmp "$release/dist/index.html" "$release/served-index.html"
+while IFS= read -r -d '' asset; do
+  curl --fail --silent --show-error --max-time 30 "$SITE_ORIGIN${asset#"$release/dist"}" -o /dev/null
+done < <(find "$release/dist/assets" -type f -print0)
 if [[ "$mode" == fullstack ]]; then
   curl --fail --silent --show-error --max-time 30 "$SITE_ORIGIN/api/competitions" | docker compose --env-file "$config" -f "$release/deploy/compose.yml" exec -T api python -c 'import json,sys; d=json.load(sys.stdin); assert isinstance(d["items"], list) and isinstance(d["total"], int)'
   printf '%s\n' "$id" > "$base/current-fullstack.tmp"
